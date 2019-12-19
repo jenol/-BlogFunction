@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AzureFunctionsVersion>v2</AzureFunctionsVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Views\admin.liquid" />
+    <None Remove="Views\error_prod.liquid" />
+    <None Remove="Views\index.liquid" />
+    <None Remove="Views\login.liquid" />
+    <None Remove="Views\thankyou.liquid" />
+    <None Remove="Views\_footer.liquid" />
+    <None Remove="Views\_header.liquid" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Views\admin.liquid" />
+    <EmbeddedResource Include="Views\error_prod.liquid" />
+    <EmbeddedResource Include="Views\login.liquid" />
+    <EmbeddedResource Include="Views\index.liquid" />
+    <EmbeddedResource Include="Views\thankyou.liquid" />
+    <EmbeddedResource Include="Views\_footer.liquid" />
+    <EmbeddedResource Include="Views\_header.liquid" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="DotLiquid" Version="2.0.314" />
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.29" />
+    <PackageReference Include="SequentialGuid" Version="2.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Guyabano\Guyabano.csproj" />
+    <ProjectReference Include="..\Blog.Service\Blog.Service.csproj" />
+  </ItemGroup>
+</Project>
