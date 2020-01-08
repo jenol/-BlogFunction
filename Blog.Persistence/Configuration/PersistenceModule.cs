@@ -19,12 +19,25 @@ namespace Blog.Persistence.Configuration
 
             var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
 
-            builder.Services.AddSingleton<IUserRepository>(p => new UserRepository(_appTablePrefix, storageAccount));
-            builder.Services.AddSingleton<ILoginRepository>(p => new LoginRepository(_appTablePrefix, storageAccount));
+            builder.Services.AddSingleton<IUserRepository>(p =>
+                new UserRepository(_appTablePrefix, storageAccount));
+            builder.Services.AddSingleton<ILoginRepository>(p =>
+                new LoginRepository(_appTablePrefix, storageAccount));
             builder.Services.AddSingleton<IUserIdRepository>(p =>
                 new UserIdRepository(_appTablePrefix, storageAccount));
             builder.Services.AddSingleton<IUserNameRepository>(p =>
                 new UserNameRepository(_appTablePrefix, storageAccount));
+            builder.Services.AddSingleton<IEmailRepository>(p =>
+                new EmailRepository(_appTablePrefix, storageAccount));
+
+            builder.Services.AddSingleton<IDbSetup>(p => new DbSetup(new[]
+            {
+                (RepositoryBase) p.GetService<IUserRepository>(),
+                (RepositoryBase) p.GetService<ILoginRepository>(),
+                (RepositoryBase) p.GetService<IUserIdRepository>(),
+                (RepositoryBase) p.GetService<IUserNameRepository>(),
+                (RepositoryBase) p.GetService<IEmailRepository>()
+            }));
         }
     }
 }

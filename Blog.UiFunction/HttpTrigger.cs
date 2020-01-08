@@ -7,7 +7,7 @@ using Blog.Service;
 using Guyabano.Mvc.Controllers;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
 
 namespace Blog.UiFunction
 {

@@ -5,7 +5,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Blog.Persistence.Repositories
 {
-    public abstract class RepositoryBase
+    internal abstract class RepositoryBase
     {
         private readonly CloudStorageAccount _cloudStorageAccount;
 
@@ -36,7 +36,7 @@ namespace Blog.Persistence.Repositories
         }
     }
 
-    public abstract class RepositoryBase<T> : RepositoryBase where T : TableEntity
+    internal abstract class RepositoryBase<T> : RepositoryBase where T : TableEntity
     {
         protected RepositoryBase(string appTablePrefix, CloudStorageAccount cloudStorageAccount) : base(appTablePrefix,
             cloudStorageAccount) { }
@@ -60,7 +60,10 @@ namespace Blog.Persistence.Repositories
         {
             var table = GetTable();
             var retrieveOperation = TableOperation.Retrieve<T>(partitionKey, rowKey);
-            return (await table.ExecuteAsync(retrieveOperation)).Result as T;
+            var r = await table.ExecuteAsync(retrieveOperation);
+
+
+            return r.Result as T;
         }
     }
 }

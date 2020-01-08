@@ -3,17 +3,18 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Blog.Service;
+using Blog.Service.DomainObjects;
 using Guyabano.Mvc.Controllers;
 
 namespace Blog.UiFunction.Controllers
 {
     public abstract class UserAwareControllerBase : Controller
     {
-        protected UserAwareControllerBase(IUserService userService) => UserService = userService;
+        protected UserAwareControllerBase(IAuthenticationService authenticationService) => AuthenticationService = authenticationService;
 
-        protected IUserService UserService { get; }
+        protected IAuthenticationService AuthenticationService { get; }
 
-        protected async Task<User> GetCurrentUserAsync()
+        protected async Task<LoginDetails> GetCurrentUserAsync()
         {
             var cookie = Request.Headers.GetCookies().SelectMany(c => c.Cookies)
                 .FirstOrDefault(c => c.Name == "session-id");
@@ -25,7 +26,7 @@ namespace Blog.UiFunction.Controllers
 
             try
             {
-                return await UserService.GetUserBySecurityTokenAsync(cookie.Value);
+                return await AuthenticationService.GetLoginAsync(cookie.Value);
             }
             catch (Exception ex)
             {

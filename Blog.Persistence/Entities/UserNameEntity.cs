@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Text;
-using Force.Crc32;
+using Blog.Persistence.Repositories;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Blog.Persistence.Entities
@@ -30,7 +29,6 @@ namespace Blog.Persistence.Entities
 
         public string UserName { get; set; }
 
-        public static string GetPartitionKey(Guid userId) =>
-            (Crc32Algorithm.Compute(Encoding.UTF8.GetBytes(userId.ToString())) % 4).ToString();
+        public static string GetPartitionKey(Guid userId) => PartitionHelper.GetPartitionKey(userId.ToString(), 4);
     }
 }

@@ -4,12 +4,12 @@
     {
         public LoginEntity() { }
 
-        public LoginEntity(string userName, string password)
+        public LoginEntity(string userName, byte[] password)
         {
             UserName = userName;
             Password = password;
         }
 
-        public string Password { get; set; }
+        public byte[] Password { get; set; }
     }
 }

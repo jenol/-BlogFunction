@@ -7,7 +7,7 @@ namespace Blog.UiFunction.Controllers
 {
     public class AdminController : UserAwareControllerBase
     {
-        public AdminController(IUserService userService) : base(userService) { }
+        public AdminController(IAuthenticationService authenticationService) : base(authenticationService) { }
 
         [Http("GET")]
         [Action("index")]
@@ -19,7 +19,7 @@ namespace Blog.UiFunction.Controllers
                 : View("admin", new
                 {
                     title = "Test",
-                    name = user.FirstName
+                    name = user.UserName
                 });
             ;
         }

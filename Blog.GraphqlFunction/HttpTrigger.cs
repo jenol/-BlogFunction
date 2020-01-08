@@ -10,7 +10,8 @@ using GraphQL.Types;
 using GraphQL.Validation.Complexity;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Build.Framework;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Blog.GraphqlFunction
@@ -31,8 +32,14 @@ namespace Blog.GraphqlFunction
         [FunctionName("BlogGraphql")]
         public async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]
-            HttpRequestMessage request, ILogger log)
+            HttpRequestMessage request, ILogger log, ExecutionContext context)
         {
+            var config = new ConfigurationBuilder()
+                .SetBasePath(context.FunctionAppDirectory)
+                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+
             var query = JsonConvert.DeserializeObject<GraphQLQuery>(await request.Content.ReadAsStringAsync());
 
             var inputs = query.Variables.ToInputs();

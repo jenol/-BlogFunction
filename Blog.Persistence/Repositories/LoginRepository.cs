@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Blog.Persistence.Entities;
 using Microsoft.WindowsAzure.Storage;
 
@@ -11,9 +13,9 @@ namespace Blog.Persistence.Repositories
 
         protected override string TableName => $"{AppTablePrefix}Login";
 
-        public async Task<LoginEntity> GetLoginAsync(string loginUserName, string loginPassword)
+        public async Task<LoginEntity> GetLoginAsync(string loginUserName, byte[] loginPassword)
         {
-            if (string.IsNullOrWhiteSpace(loginUserName) || string.IsNullOrWhiteSpace(loginPassword))
+            if (string.IsNullOrWhiteSpace(loginUserName) || !loginPassword.Any())
             {
                 return null;
             }
@@ -24,7 +26,7 @@ namespace Blog.Persistence.Repositories
             return login.Password != loginPassword ? null : login;
         }
 
-        public async Task<LoginEntity> UpsetLoginAsync(string loginUserName, string loginPassword)
+        public async Task<LoginEntity> UpsetLoginAsync(string loginUserName, byte[] loginPassword)
         {
             var loginEntry = new LoginEntity(loginUserName, loginPassword);
             return await UpsertAsync(loginEntry);

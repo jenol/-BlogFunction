@@ -10,7 +10,7 @@ namespace Blog.UiFunction.Controllers
 {
     public class LoginController : UserAwareControllerBase
     {
-        public LoginController(IUserService userService) : base(userService) { }
+        public LoginController(IAuthenticationService authenticationService) : base(authenticationService) { }
 
         [Http("GET")]
         [Action("index")]
@@ -45,7 +45,7 @@ namespace Blog.UiFunction.Controllers
                 return Redirect("admin");
             }
 
-            var token = await UserService.GetSecurityTokenAsync(login.UserName, login.Password);
+            var token = await AuthenticationService.GetSecurityTokenAsync(login.UserName, login.Password);
 
             if (token == null)
             {

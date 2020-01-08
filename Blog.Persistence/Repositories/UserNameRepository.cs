@@ -5,7 +5,7 @@ using Microsoft.WindowsAzure.Storage;
 
 namespace Blog.Persistence.Repositories
 {
-    public class UserNameRepository : RepositoryBase<UserNameEntity>, IUserNameRepository
+    internal class UserNameRepository : RepositoryBase<UserNameEntity>, IUserNameRepository
     {
         public UserNameRepository(string appTablePrefix, CloudStorageAccount cloudStorageAccount) :
             base(appTablePrefix, cloudStorageAccount) { }
