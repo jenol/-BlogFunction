@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Blog.Service.DomainObjects
+﻿namespace Blog.Service.DomainObjects
 {
     public class LoginDetails
     {

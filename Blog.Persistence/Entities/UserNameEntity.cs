@@ -10,7 +10,7 @@ namespace Blog.Persistence.Entities
 
         public UserNameEntity() { }
 
-        public UserNameEntity(Guid userId, string userName)
+        public UserNameEntity(Guid userId, byte[] userName)
         {
             UserId = userId;
             UserName = userName;
@@ -27,7 +27,7 @@ namespace Blog.Persistence.Entities
             }
         }
 
-        public string UserName { get; set; }
+        public byte[] UserName { get; set; }
 
         public static string GetPartitionKey(Guid userId) => PartitionHelper.GetPartitionKey(userId.ToString(), 4);
     }

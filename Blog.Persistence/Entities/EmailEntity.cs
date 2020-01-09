@@ -9,7 +9,7 @@ namespace Blog.Persistence.Entities
 
         public EmailEntity() { }
 
-        public EmailEntity(string userName, string email)
+        public EmailEntity(byte[] userName, string email)
         {
             UserName = userName;
             Email = email;
@@ -26,7 +26,7 @@ namespace Blog.Persistence.Entities
             }
         }
 
-        public string UserName { get; set; }
+        public byte[] UserName { get; set; }
 
         public static string GetPartitionKey(string email) => PartitionHelper.GetPartitionKey(email, 4);
     }

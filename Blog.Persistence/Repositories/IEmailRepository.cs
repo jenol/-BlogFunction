@@ -5,8 +5,8 @@ namespace Blog.Persistence.Repositories
 {
     public interface IEmailRepository
     {
-        Task<string> GetUserNameByEmailAsync(string email);
-        Task<Dictionary<string, string>> GetUserNamesByEmailsAsync(IEnumerable<string> emails);
-        Task UpsertEmailAsync(string userName, string email);
+        Task<byte[]> GetUserNameByEmailAsync(string email);
+        Task<Dictionary<string, byte[]>> GetUserNamesByEmailsAsync(IEnumerable<string> emails);
+        Task UpsertEmailAsync(byte[] userName, string email);
     }
 }

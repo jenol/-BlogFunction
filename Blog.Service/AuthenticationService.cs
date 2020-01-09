@@ -13,15 +13,14 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Blog.Service
 {
-    internal class AuthenticationService : IAuthenticationService
+    internal class AuthenticationService : ServiceBase, IAuthenticationService
     {
         private readonly ILoginRepository _loginRepository;
-        private readonly string _salt = "NZsP6NnmfBuYeJrrAKNuVQ==";
-        private readonly string _secret = "somethingyouwantwhichissecurewillworkk";
-        
 
         public AuthenticationService(
-            ILoginRepository loginRepository)
+            string encryptionKey,
+            string salt,
+            ILoginRepository loginRepository) : base(encryptionKey, salt)
         {
             IdentityModelEventSource.ShowPII = true;
             _loginRepository = loginRepository;
@@ -33,26 +32,27 @@ namespace Blog.Service
 
             return Task.FromResult(new LoginDetails
             {
-                UserName = enitity.UserName
+                UserName = GetDecryptedText(enitity.UserName)
             });
         }
 
         public async Task<LoginDetails> GetLoginAsync(string username, string password)
         {
-            var enitity = await _loginRepository.GetLoginAsync(username, HashPassword(password));
+            var enitity = await _loginRepository.GetLoginAsync(GetEncryptedBytes(username), HashPassword(password));
 
             return new LoginDetails
             {
-                UserName = enitity.UserName
+                UserName = GetDecryptedText(enitity.UserName)
             };
         }
 
-        public Task UpsetLoginAsync(string username, string password) => _loginRepository.UpsetLoginAsync(username, HashPassword(password));
-        
+        public Task UpsetLoginAsync(string username, string password) =>
+            _loginRepository.UpsetLoginAsync(GetEncryptedBytes(username), HashPassword(password));
+
 
         public async Task<string> GetSecurityTokenAsync(string username, string password)
         {
-            var login = await _loginRepository.GetLoginAsync(username, HashPassword(password));
+            var login = await _loginRepository.GetLoginAsync(GetEncryptedBytes(username), HashPassword(password));
 
             if (login == null)
             {
@@ -74,8 +74,8 @@ namespace Blog.Service
                 new TokenValidationParameters
                 {
                     ValidIssuer = "self",
-                    ValidAudiences = new[] { "http://localhost/" },
-                    IssuerSigningKeys = new[] { GetSymmetricSecurityKey() }
+                    ValidAudiences = new[] {"http://localhost/"},
+                    IssuerSigningKeys = new[] {GetSymmetricSecurityKey()}
                 };
 
             var principal = tokenHandler.ValidateToken(securityToken, validationParameters, out _);
@@ -83,7 +83,7 @@ namespace Blog.Service
             var userName = principal.Claims.FirstOrDefault(c => c.Type == "UserName")?.Value;
             var password = principal.Claims.FirstOrDefault(c => c.Type == "Password")?.Value;
 
-            return new LoginEntity(userName, HashPassword(password));
+            return new LoginEntity(GetEncryptedBytes(userName), HashPassword(password));
         }
 
         private SecurityTokenDescriptor CreateSecurityTokenDescriptor(string username, byte[] password)
@@ -109,13 +109,13 @@ namespace Blog.Service
 
         private SymmetricSecurityKey GetSymmetricSecurityKey()
         {
-            var key = Encoding.ASCII.GetBytes(_secret);
+            var key = Encoding.ASCII.GetBytes(EncryptionKey);
             return new SymmetricSecurityKey(key);
         }
 
         private byte[] HashPassword(string password) => KeyDerivation.Pbkdf2(
             password,
-            Encoding.UTF8.GetBytes(_salt),
+            Salt,
             KeyDerivationPrf.HMACSHA1,
             10000,
             256 / 8);

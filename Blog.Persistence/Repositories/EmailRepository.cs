@@ -14,14 +14,15 @@ namespace Blog.Persistence.Repositories
 
         protected override string TableName => $"{AppTablePrefix}Email";
 
-        public async Task<string> GetUserNameByEmailAsync(string email)
+        public async Task<byte[]> GetUserNameByEmailAsync(string email)
         {
             var partitionKey = EmailEntity.GetPartitionKey(email);
             var entity = await RetrieveEntityUsingPointQueryAsync(partitionKey, email);
+
             return entity?.UserName;
         }
 
-        public async Task<Dictionary<string, string>> GetUserNamesByEmailsAsync(IEnumerable<string> emails)
+        public async Task<Dictionary<string, byte[]>> GetUserNamesByEmailsAsync(IEnumerable<string> emails)
         {
             var tasksByEmail = emails.Distinct().ToDictionary(e => e, e => GetUserNameByEmailAsync(e));
 
@@ -37,11 +38,11 @@ namespace Blog.Persistence.Repositories
             var succeeded = tasksByEmail.Where(t => !t.Value.IsFaulted).ToArray();
             var failed = tasksByEmail.Where(t => t.Value.IsFaulted).ToArray();
 
-            return succeeded.Where(t => !string.IsNullOrWhiteSpace(t.Value.Result))
+            return succeeded.Where(t => t.Value.Result != null && t.Value.Result.Any())
                 .ToDictionary(t => t.Key, t => t.Value.Result);
         }
 
-        public async Task UpsertEmailAsync(string userName, string email)
+        public async Task UpsertEmailAsync(byte[] userName, string email)
         {
             await UpsertAsync(new EmailEntity(userName, email));
         }

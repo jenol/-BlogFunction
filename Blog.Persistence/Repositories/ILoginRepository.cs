@@ -5,8 +5,8 @@ namespace Blog.Persistence.Repositories
 {
     public interface ILoginRepository
     {
-        Task<LoginEntity> GetLoginAsync(string loginUserName, byte[] loginPassword);
+        Task<LoginEntity> GetLoginAsync(byte[] userName, byte[] password);
 
-        Task<LoginEntity> UpsetLoginAsync(string loginUserName, byte[] loginPassword);
+        Task<LoginEntity> UpsetLoginAsync(byte[] userName, byte[] password);
     }
 }

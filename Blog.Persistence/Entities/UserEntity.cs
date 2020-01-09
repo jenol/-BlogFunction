@@ -6,7 +6,7 @@ namespace Blog.Persistence.Entities
     {
         public UserEntity() { }
 
-        public UserEntity(Guid userId, string userName, string firstName, string lastName, string email)
+        public UserEntity(Guid userId, byte[] userName, string firstName, string lastName, string email)
         {
             UserId = userId;
             UserName = userName;

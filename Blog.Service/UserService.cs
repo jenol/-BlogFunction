@@ -3,26 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Blog.Persistence.Repositories;
+using Blog.Service.DomainObjects;
 using SequentialGuid;
 
 namespace Blog.Service
 {
-    public class UserService : IUserService
+    public class UserService : ServiceBase, IUserService
     {
+        private readonly IAuthenticationService _authenticationService;
         private readonly IDbSetup _dbSetup;
+        private readonly IEmailService _emailService;
         private readonly IUserIdRepository _userIdRepository;
         private readonly IUserNameRepository _userNameRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IEmailService _emailService;
-        private readonly IAuthenticationService _authenticationService;
 
         public UserService(
+            string encryptionKey, 
+            string salt,
             IDbSetup dbSetup,
             IUserRepository userRepository,
             IUserIdRepository userIdRepository,
             IUserNameRepository userNameRepository,
             IEmailService emailService,
-            IAuthenticationService authenticationService)
+            IAuthenticationService authenticationService) : base(encryptionKey, salt)
         {
             _dbSetup = dbSetup;
             _userRepository = userRepository;
@@ -36,7 +39,7 @@ namespace Blog.Service
         {
             await _dbSetup.Run();
 
-            var emailsAdded = new HashSet<string>();
+            var emailsAdded = new HashSet<Email>();
             var idsAdded = new HashSet<Guid>();
 
             var savedUsers = new List<User>();
@@ -45,50 +48,57 @@ namespace Blog.Service
 
             foreach (var user in users)
             {
-                if (emailsAdded.Contains(user.Email))
+                if (!Email.TryParse(user.Email, out var email))
                 {
                     continue;
                 }
 
-                emailsAdded.Add(user.Email);
-
-                var email = user.Email;
-
-                if (o.ContainsKey(email))
+                if (emailsAdded.Contains(email))
                 {
                     continue;
                 }
 
-                await _emailService.UpsertEmailAsync(user.UserName, email);
+                emailsAdded.Add(email);
 
-                var user1 = await _userRepository.GetUserAsync(user.UserName);
+                if (o.ContainsKey(email.ToString()))
+                {
+                    continue;
+                }
 
-                Guid userId;
+                var encryptedUserName = GetEncryptedBytes(user.UserName);
+
+                await _emailService.UpsertEmailAsync(encryptedUserName, email);
+
+                var user1 = await _userRepository.GetUserAsync(encryptedUserName);
+
+                Guid? userId = null;
 
                 if (user1 != null)
                 {
-                    userId = await _userIdRepository.GetUserIdAsync(user.UserName);
-                }
-                else
-                {
-                    userId = SequentialGuidGenerator.Instance.NewGuid();
-                    await _userIdRepository.UpsertUserIdAsync(user.UserName, userId);
-                    await _userNameRepository.UpsertUserIdAsync(user.UserName, userId);
+                    userId = await _userIdRepository.GetUserIdAsync(encryptedUserName);
                 }
 
-                if (idsAdded.Contains(userId))
+                if (!userId.HasValue)
+                {
+                    userId = SequentialGuidGenerator.Instance.NewGuid();
+                    await _userIdRepository.UpsertUserIdAsync(encryptedUserName, userId.Value);
+                }
+
+                await _userNameRepository.UpsertUserIdAsync(encryptedUserName, userId.Value);
+
+                if (idsAdded.Contains(userId.Value))
                 {
                     continue;
                 }
 
-                idsAdded.Add(userId);
+                idsAdded.Add(userId.Value);
 
                 await _userRepository.UpsertUserAsync(
-                    userId,
-                    user.UserName,
-                    user.FirstName,
-                    user.LastName,
-                    email);
+                    userId.Value,
+                    encryptedUserName,
+                    GetEncryptedText(user.FirstName),
+                    GetEncryptedText(user.LastName),
+                    _emailService.EncryptEmail(email).ToString());
 
                 await _authenticationService.UpsetLoginAsync(user.UserName, user.Password);
 
@@ -104,9 +114,12 @@ namespace Blog.Service
             return savedUsers;
         }
 
-        public async Task<User> GetUserAsync(string userName)
+        public Task<User> GetUserAsync(string userName) => GetUserAsync(userName, GetEncryptedBytes(userName));
+
+        private async Task<User> GetUserAsync(string userName, byte[] encryptedUserName)
         {
-            var user = await _userRepository.GetUserAsync(userName);
+            
+            var user = await _userRepository.GetUserAsync(encryptedUserName);
 
             if (user == null)
             {
@@ -115,29 +128,31 @@ namespace Blog.Service
 
             if (user.UserId == Guid.Empty)
             {
-                user.UserId = await _userIdRepository.GetUserIdAsync(userName);
+                user.UserId = await _userIdRepository.GetUserIdAsync(encryptedUserName) ?? Guid.Empty;
             }
+
+            var email = user.Email == null ? null : _emailService.DecryptEmail(new EncryptedEmail(user?.Email)).ToString();
 
             return new User
             {
                 UserId = user.UserId,
-                UserName = user.UserName,
-                Email = user?.Email,
-                FirstName = user?.FirstName,
-                LastName = user?.LastName
+                UserName = userName,
+                Email = email,
+                FirstName = GetDecryptedText(user.FirstName),
+                LastName = GetDecryptedText(user.LastName)
             };
         }
 
         public async Task<User> GetUserAsync(Guid userId)
         {
-            var userName = await _userNameRepository.GetUserNameAsync(userId);
+            var encryptedUserName = await _userNameRepository.GetUserNameAsync(userId);
 
-            if (string.IsNullOrWhiteSpace(userName))
+            if (!encryptedUserName.Any())
             {
                 return null;
             }
 
-            return await GetUserAsync(userName);
+            return await GetUserAsync(GetDecryptedText(encryptedUserName), encryptedUserName);
         }
     }
 }

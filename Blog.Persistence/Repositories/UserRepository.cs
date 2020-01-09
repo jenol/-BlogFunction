@@ -12,10 +12,10 @@ namespace Blog.Persistence.Repositories
 
         protected override string TableName => $"{AppTablePrefix}User";
 
-        public async Task<UserEntity> GetUserAsync(string userName) =>
-            await RetrieveEntityUsingPointQueryAsync(UserNameAwareEntity.GetPartitionKey(userName), userName);
+        public async Task<UserEntity> GetUserAsync(byte[] userName) =>
+            await RetrieveEntityUsingPointQueryAsync(UserNameAwareEntity.GetPartitionKey(userName), UserNameAwareEntity.GetRowKey(userName));
 
-        public async Task<UserEntity> UpsertUserAsync(Guid userId, string userName, string firstName, string lastName,
+        public async Task<UserEntity> UpsertUserAsync(Guid userId, byte[] userName, string firstName, string lastName,
             string email)
         {
             var user = await GetUserAsync(userName) ?? new UserEntity {UserName = userName};

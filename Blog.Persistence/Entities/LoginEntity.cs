@@ -4,7 +4,7 @@
     {
         public LoginEntity() { }
 
-        public LoginEntity(string userName, byte[] password)
+        public LoginEntity(byte[] userName, byte[] password)
         {
             UserName = userName;
             Password = password;

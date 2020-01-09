@@ -62,8 +62,7 @@ namespace Blog.Persistence.Repositories
             var retrieveOperation = TableOperation.Retrieve<T>(partitionKey, rowKey);
             var r = await table.ExecuteAsync(retrieveOperation);
 
-
-            return r.Result as T;
+            return r?.Result as T;
         }
     }
 }

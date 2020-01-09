@@ -18,6 +18,7 @@ namespace Blog.GraphqlFunction
 {
     public class HttpTrigger
     {
+        private static IConfigurationRoot _config;
         private readonly IDocumentExecuter _documentExecuter;
         private readonly IDocumentWriter _documentWriter;
         private readonly ISchema _schema;
@@ -34,11 +35,14 @@ namespace Blog.GraphqlFunction
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)]
             HttpRequestMessage request, ILogger log, ExecutionContext context)
         {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(context.FunctionAppDirectory)
-                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
-                .Build();
+            if (_config == null)
+            {
+                _config = new ConfigurationBuilder()
+                    .SetBasePath(context.FunctionAppDirectory)
+                    .AddJsonFile("local.settings.json")
+                    .AddEnvironmentVariables()
+                    .Build();
+            }
 
             var query = JsonConvert.DeserializeObject<GraphQLQuery>(await request.Content.ReadAsStringAsync());
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Blog.Service
+﻿namespace Blog.Service
 {
-    public class AuthorizationService
-    {
-    }
+    public class AuthorizationService { }
 }

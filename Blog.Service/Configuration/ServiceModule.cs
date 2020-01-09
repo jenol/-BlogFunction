@@ -12,12 +12,22 @@ namespace Blog.Service.Configuration
         {
             builder.AddModule(new PersistenceModule("blogAppV1"));
 
-            builder.Services.AddSingleton<IAuthenticationService>(p => new AuthenticationService(p.GetService<ILoginRepository>()));
-            builder.Services.AddSingleton<IEmailService>(p => new EmailService(p.GetService<IEmailRepository>()));
+            builder.Services.AddSingleton<IAuthenticationService>(p =>
+                new AuthenticationService(
+                    "somethingyouwantwhichissecurewillworkk",
+                    "NZsP6NnmfBuYeJrrAKNuVQ==",
+                    p.GetService<ILoginRepository>()));
+
+            builder.Services.AddSingleton<IEmailService>(p => new EmailService(
+                "abc123",
+                "Jeno Laszlo",
+                p.GetService<IEmailRepository>()));
 
 
             builder.Services.AddSingleton<IUserService>(p =>
                 new UserService(
+                    "abc123",
+                    "Jeno Laszlo",
                     p.GetService<IDbSetup>(),
                     p.GetService<IUserRepository>(),
                     p.GetService<IUserIdRepository>(),

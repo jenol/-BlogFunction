@@ -10,7 +10,8 @@ namespace Blog.UiFunction.Controllers
 {
     public abstract class UserAwareControllerBase : Controller
     {
-        protected UserAwareControllerBase(IAuthenticationService authenticationService) => AuthenticationService = authenticationService;
+        protected UserAwareControllerBase(IAuthenticationService authenticationService) =>
+            AuthenticationService = authenticationService;
 
         protected IAuthenticationService AuthenticationService { get; }
 

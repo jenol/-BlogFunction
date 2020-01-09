@@ -5,7 +5,7 @@ namespace Blog.Persistence.Repositories
 {
     public interface IUserIdRepository
     {
-        Task<Guid> GetUserIdAsync(string userName);
-        Task UpsertUserIdAsync(string userName, Guid userId);
+        Task<Guid?> GetUserIdAsync(byte[] userName);
+        Task UpsertUserIdAsync(byte[] userName, Guid userId);
     }
 }

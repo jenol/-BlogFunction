@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Blog.Persistence.Repositories;
 using Blog.Service.DomainObjects;
 
 namespace Blog.Service
 {
-    internal class EmailService : IEmailService
+    internal class EmailService : ServiceBase, IEmailService
     {
-        private const string EncryptionKey = "abc123";
         private readonly IEmailRepository _emailRepository;
 
-        public EmailService(IEmailRepository emailRepository)
-        {
-            _emailRepository = emailRepository;
-        }
+        public EmailService(string encryptionKey, string salt, IEmailRepository emailRepository) : 
+            base(encryptionKey, salt) => _emailRepository = emailRepository;
 
-        public Task<Dictionary<string, string>> GetUserNamesByEmailsAsync(IEnumerable<string> emailTexts)
+        public async Task<Dictionary<string, string>> GetUserNamesByEmailsAsync(IEnumerable<string> emailTexts)
         {
             var encryptedEmails = new List<string>();
 
@@ -27,25 +25,18 @@ namespace Blog.Service
                     throw new Exception($"Invalid email: {emailText}");
                 }
 
-                encryptedEmails.Add(email.EncryptedEmail(EncryptionKey));
+                encryptedEmails.Add(EncryptEmail(email).ToString());
             }
-
-            return _emailRepository.GetUserNamesByEmailsAsync(encryptedEmails);
+            
+            return (await _emailRepository.GetUserNamesByEmailsAsync(encryptedEmails)).ToDictionary(k => k.Key, k => GetDecryptedText(k.Value));
         }
 
-        public async Task UpsertEmailAsync(string userName, string emailText)
-        {
-            if (Email.TryParse(emailText, out var email))
-            {
-                await UpsertEmailAsync(userName, email);
-            }
+        public EncryptedEmail EncryptEmail(Email email) => new EncryptedEmail(GetEncryptedText(email.ToString()));
+        public Email DecryptEmail(EncryptedEmail email) => new Email(GetDecryptedText(email.ToString()));
 
-            throw new Exception($"Invalid email: {emailText}");
-        }
-
-        internal async Task UpsertEmailAsync(string userName, Email email)
+        public async Task UpsertEmailAsync(byte[] userName, Email email)
         {
-            await _emailRepository.UpsertEmailAsync(userName, email.EncryptedEmail(EncryptionKey));
+            await _emailRepository.UpsertEmailAsync(userName, EncryptEmail(email).ToString());
         }
     }
 }
