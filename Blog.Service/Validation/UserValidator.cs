@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Blog.Service.Contracts;
 using Blog.Service.DomainObjects;
@@ -63,7 +62,8 @@ namespace Blog.Service.Validation
 
                 if (!ValidatePassword(user.Password, out var passwordScore))
                 {
-                    yield return (user.ImportOperationId, $"contains invalid password. The password score is {passwordScore}");
+                    yield return (user.ImportOperationId,
+                        $"contains invalid password. The password score is {passwordScore}");
                 }
 
                 if (string.IsNullOrWhiteSpace(user.FirstName))
@@ -82,7 +82,8 @@ namespace Blog.Service.Validation
         {
             passwordScore = CheckStrength(password);
 
-            switch (passwordScore) {
+            switch (passwordScore)
+            {
                 case PasswordScore.Blank:
                 case PasswordScore.VeryWeak:
                 case PasswordScore.Weak:

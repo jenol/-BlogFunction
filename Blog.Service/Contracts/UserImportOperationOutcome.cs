@@ -7,6 +7,6 @@ namespace Blog.Service.Contracts
         public int ImportOperationId { get; set; }
         public Guid? UserId { get; set; }
         public bool IsSuccess { get; set; }
-        public string[] Notes { get; set; } 
+        public string[] Notes { get; set; }
     }
 }

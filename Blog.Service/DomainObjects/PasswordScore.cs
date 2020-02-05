@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Blog.Service.DomainObjects
+﻿namespace Blog.Service.DomainObjects
 {
-    enum PasswordScore
+    internal enum PasswordScore
     {
         Blank = 0,
         VeryWeak = 1,

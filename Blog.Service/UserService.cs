@@ -21,7 +21,7 @@ namespace Blog.Service
         private readonly IUserRepository _userRepository;
 
         public UserService(
-            string encryptionKey, 
+            string encryptionKey,
             string salt,
             IDbSetup dbSetup,
             IUserRepository userRepository,
@@ -51,7 +51,8 @@ namespace Blog.Service
             if (validationResult.Any())
             {
                 var resultsById = validationResult
-                    .GroupBy(v => v.ImportOperationId).ToDictionary(t => t.Key, t => t.Select(m => m.Message) .ToArray());
+                    .GroupBy(v => v.ImportOperationId)
+                    .ToDictionary(t => t.Key, t => t.Select(m => m.Message).ToArray());
 
                 foreach (var result in resultsById)
                 {
@@ -117,9 +118,20 @@ namespace Blog.Service
 
         public Task<User> GetUserAsync(string userName) => GetUserAsync(userName, GetEncryptedBytes(userName));
 
+        public async Task<User> GetUserAsync(Guid userId)
+        {
+            var encryptedUserName = await _userNameRepository.GetUserNameAsync(userId.ToByteArray());
+
+            if (!encryptedUserName.Any())
+            {
+                return null;
+            }
+
+            return await GetUserAsync(GetDecryptedText(encryptedUserName), encryptedUserName);
+        }
+
         private async Task<User> GetUserAsync(string userName, byte[] encryptedUserName)
         {
-            
             var user = await _userRepository.GetUserAsync(encryptedUserName);
 
             if (user == null)
@@ -132,7 +144,9 @@ namespace Blog.Service
                 user.UserId = await _userIdRepository.GetUserIdAsync(encryptedUserName);
             }
 
-            var email = user.Email == null ? null : _emailService.DecryptEmail(new EncryptedEmail(user?.Email)).ToString();
+            var email = user.Email == null
+                ? null
+                : _emailService.DecryptEmail(new EncryptedEmail(user?.Email)).ToString();
 
             return new User
             {
@@ -142,18 +156,6 @@ namespace Blog.Service
                 FirstName = GetDecryptedText(user.FirstName),
                 LastName = GetDecryptedText(user.LastName)
             };
-        }
-
-        public async Task<User> GetUserAsync(Guid userId)
-        {
-            var encryptedUserName = await _userNameRepository.GetUserNameAsync(userId.ToByteArray());
-
-            if (!encryptedUserName.Any())
-            {
-                return null;
-            }
-
-            return await GetUserAsync(GetDecryptedText(encryptedUserName), encryptedUserName);
         }
     }
 }

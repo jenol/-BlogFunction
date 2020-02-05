@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Blog.GraphqlFunction.Types;
 using Blog.Service;
@@ -41,7 +40,6 @@ namespace Blog.GraphqlFunction
                         }
 
                         return results;
-
                     }
                     catch (UserValidatorException ex)
                     {
