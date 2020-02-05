@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Blog.Persistence.Repositories;
+using Blog.Service.Contracts;
 using Blog.Service.DomainObjects;
+using Blog.Service.Validation;
 using SequentialGuid;
 
 namespace Blog.Service
@@ -35,32 +38,37 @@ namespace Blog.Service
             _authenticationService = authenticationService;
         }
 
-        public async Task<IEnumerable<User>> AddUsersAsync(IEnumerable<UserInput> users)
+        public async Task<IEnumerable<UserImportOperationOutcome>> AddUsersAsync(UserImport[] users)
         {
             await _dbSetup.Run();
 
-            var emailsAdded = new HashSet<Email>();
-            var idsAdded = new HashSet<Guid>();
+            var savedUsers = new List<UserImportOperationOutcome>();
 
-            var savedUsers = new List<User>();
+            var o = new UserValidator(_emailService);
 
-            var o = await _emailService.GetUserNamesByEmailsAsync(users.Select(u => u.Email));
+            var validationResult = (await o.ValidateAsync(users)).ToArray();
+
+            if (validationResult.Any())
+            {
+                var resultsById = validationResult
+                    .GroupBy(v => v.ImportOperationId).ToDictionary(t => t.Key, t => t.Select(m => m.Message) .ToArray());
+
+                foreach (var result in resultsById)
+                {
+                    savedUsers.Add(new UserImportOperationOutcome
+                    {
+                        ImportOperationId = result.Key,
+                        IsSuccess = false,
+                        Notes = result.Value
+                    });
+                }
+
+                return savedUsers;
+            }
 
             foreach (var user in users)
             {
                 if (!Email.TryParse(user.Email, out var email))
-                {
-                    continue;
-                }
-
-                if (emailsAdded.Contains(email))
-                {
-                    continue;
-                }
-
-                emailsAdded.Add(email);
-
-                if (o.ContainsKey(email.ToString()))
                 {
                     continue;
                 }
@@ -71,30 +79,23 @@ namespace Blog.Service
 
                 var user1 = await _userRepository.GetUserAsync(encryptedUserName);
 
-                Guid? userId = null;
+                byte[] userId = null;
 
                 if (user1 != null)
                 {
                     userId = await _userIdRepository.GetUserIdAsync(encryptedUserName);
                 }
 
-                if (!userId.HasValue)
+                if (userId == null || !userId.Any())
                 {
-                    userId = SequentialGuidGenerator.Instance.NewGuid();
-                    await _userIdRepository.UpsertUserIdAsync(encryptedUserName, userId.Value);
+                    userId = SequentialGuidGenerator.Instance.NewGuid().ToByteArray();
+                    await _userIdRepository.UpsertUserIdAsync(encryptedUserName, userId);
                 }
 
-                await _userNameRepository.UpsertUserIdAsync(encryptedUserName, userId.Value);
-
-                if (idsAdded.Contains(userId.Value))
-                {
-                    continue;
-                }
-
-                idsAdded.Add(userId.Value);
+                await _userNameRepository.UpsertUserIdAsync(encryptedUserName, userId);
 
                 await _userRepository.UpsertUserAsync(
-                    userId.Value,
+                    userId,
                     encryptedUserName,
                     GetEncryptedText(user.FirstName),
                     GetEncryptedText(user.LastName),
@@ -102,12 +103,12 @@ namespace Blog.Service
 
                 await _authenticationService.UpsetLoginAsync(user.UserName, user.Password);
 
-                savedUsers.Add(new User
+                savedUsers.Add(new UserImportOperationOutcome
                 {
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    FirstName = user?.FirstName,
-                    LastName = user?.LastName
+                    ImportOperationId = user.ImportOperationId,
+                    UserId = new Guid(userId),
+                    IsSuccess = true,
+                    Notes = new string[0]
                 });
             }
 
@@ -126,16 +127,16 @@ namespace Blog.Service
                 return null;
             }
 
-            if (user.UserId == Guid.Empty)
+            if (!user.UserId.Any())
             {
-                user.UserId = await _userIdRepository.GetUserIdAsync(encryptedUserName) ?? Guid.Empty;
+                user.UserId = await _userIdRepository.GetUserIdAsync(encryptedUserName);
             }
 
             var email = user.Email == null ? null : _emailService.DecryptEmail(new EncryptedEmail(user?.Email)).ToString();
 
             return new User
             {
-                UserId = user.UserId,
+                UserId = Guid.Parse(Encoding.UTF8.GetString(user.UserId)),
                 UserName = userName,
                 Email = email,
                 FirstName = GetDecryptedText(user.FirstName),
@@ -145,7 +146,7 @@ namespace Blog.Service
 
         public async Task<User> GetUserAsync(Guid userId)
         {
-            var encryptedUserName = await _userNameRepository.GetUserNameAsync(userId);
+            var encryptedUserName = await _userNameRepository.GetUserNameAsync(userId.ToByteArray());
 
             if (!encryptedUserName.Any())
             {

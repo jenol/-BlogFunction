@@ -11,7 +11,7 @@ namespace Blog.Service
     {
         private readonly IEmailRepository _emailRepository;
 
-        public EmailService(string encryptionKey, string salt, IEmailRepository emailRepository) : 
+        public EmailService(string encryptionKey, string salt, IEmailRepository emailRepository) :
             base(encryptionKey, salt) => _emailRepository = emailRepository;
 
         public async Task<Dictionary<string, string>> GetUserNamesByEmailsAsync(IEnumerable<string> emailTexts)
@@ -27,8 +27,9 @@ namespace Blog.Service
 
                 encryptedEmails.Add(EncryptEmail(email).ToString());
             }
-            
-            return (await _emailRepository.GetUserNamesByEmailsAsync(encryptedEmails)).ToDictionary(k => k.Key, k => GetDecryptedText(k.Value));
+
+            return (await _emailRepository.GetUserNamesByEmailsAsync(encryptedEmails)).ToDictionary(k => k.Key,
+                k => GetDecryptedText(k.Value));
         }
 
         public EncryptedEmail EncryptEmail(Email email) => new EncryptedEmail(GetEncryptedText(email.ToString()));

@@ -43,8 +43,9 @@ namespace Blog.Service
             }
         }
 
-        protected string GetEncryptedText(string value) => Convert.ToBase64String(GetEncryptedBytes(value)).Replace("/", "*");
-        
+        protected string GetEncryptedText(string value) =>
+            Convert.ToBase64String(GetEncryptedBytes(value)).Replace("/", "*");
+
         protected string GetDecryptedText(byte[] cipherBytes)
         {
             if (cipherBytes == null || !cipherBytes.Any())
@@ -72,7 +73,7 @@ namespace Blog.Service
             {
                 return null;
             }
-            
+
             return GetDecryptedText(Convert.FromBase64String(value.Replace("*", "/").Replace(" ", "+")));
         }
     }

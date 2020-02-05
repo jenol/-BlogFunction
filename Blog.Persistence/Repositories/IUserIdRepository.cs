@@ -1,11 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Blog.Persistence.Repositories
 {
     public interface IUserIdRepository
     {
-        Task<Guid?> GetUserIdAsync(byte[] userName);
-        Task UpsertUserIdAsync(byte[] userName, Guid userId);
+        Task<byte[]> GetUserIdAsync(byte[] userName);
+        Task UpsertUserIdAsync(byte[] userName, byte[] userId);
     }
 }

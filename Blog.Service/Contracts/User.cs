@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Blog.Service
+namespace Blog.Service.Contracts
 {
     public class User
     {

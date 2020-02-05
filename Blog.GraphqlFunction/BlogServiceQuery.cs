@@ -23,5 +23,8 @@ namespace Blog.GraphqlFunction
                     {Name = "userId", Description = "the id of the user"}),
                 resolve: context => userService.GetUserAsync(context.GetArgument<Guid>("userId")));
         }
+
+        //context => context.Errors.Add(new ExecutionError("Error Message"))
+        // resolve: context => throw new ExecutionError("Error Message")
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Blog.Persistence.Repositories;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -6,29 +7,33 @@ namespace Blog.Persistence.Entities
 {
     public class UserNameEntity : TableEntity
     {
-        private Guid _userId;
+        private byte[] _userId;
 
         public UserNameEntity() { }
 
-        public UserNameEntity(Guid userId, byte[] userName)
+        public UserNameEntity(byte[] userId, byte[] userName)
         {
             UserId = userId;
             UserName = userName;
         }
 
-        public Guid UserId
+        public byte[] UserId
         {
             get => _userId;
             set
             {
                 _userId = value;
-                RowKey = _userId.ToString();
+                RowKey = GetRowKey(_userId);
                 PartitionKey = GetPartitionKey(_userId);
             }
         }
 
         public byte[] UserName { get; set; }
 
-        public static string GetPartitionKey(Guid userId) => PartitionHelper.GetPartitionKey(userId.ToString(), 4);
+        public static string GetRowKey(byte[] userId) =>
+            Convert.ToBase64String(userId).Replace("/", "-").Replace("+", "_").Replace("=", "");
+
+        public static string GetPartitionKey(byte[] userId) =>
+            PartitionHelper.GetPartitionKey(Encoding.UTF8.GetString(userId), 4);
     }
 }

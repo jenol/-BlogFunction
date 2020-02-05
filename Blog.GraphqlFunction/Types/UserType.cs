@@ -1,4 +1,6 @@
 ﻿using Blog.Service;
+using Blog.Service.Contracts;
+using Blog.Service.DomainObjects;
 using GraphQL.Types;
 
 namespace Blog.GraphqlFunction.Types

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Blog.Service.Contracts;
 
 namespace Blog.Service
 {
@@ -8,6 +9,6 @@ namespace Blog.Service
     {
         Task<User> GetUserAsync(string userName);
         Task<User> GetUserAsync(Guid userId);
-        Task<IEnumerable<User>> AddUsersAsync(IEnumerable<UserInput> users);
+        Task<IEnumerable<UserImportOperationOutcome>> AddUsersAsync(UserImport[] users);
     }
 }

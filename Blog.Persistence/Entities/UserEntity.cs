@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace Blog.Persistence.Entities
+﻿namespace Blog.Persistence.Entities
 {
     public class UserEntity : UserNameAwareEntity
     {
         public UserEntity() { }
 
-        public UserEntity(Guid userId, byte[] userName, string firstName, string lastName, string email)
+        public UserEntity(byte[] userId, byte[] userName, string firstName, string lastName, string email)
         {
             UserId = userId;
             UserName = userName;
@@ -15,7 +13,7 @@ namespace Blog.Persistence.Entities
             LastName = lastName;
         }
 
-        public Guid UserId { get; set; }
+        public byte[] UserId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }

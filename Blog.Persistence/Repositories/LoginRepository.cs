@@ -20,7 +20,7 @@ namespace Blog.Persistence.Repositories
             }
 
             var login = await RetrieveEntityUsingPointQueryAsync(
-                UserNameAwareEntity.GetPartitionKey(userName), 
+                UserNameAwareEntity.GetPartitionKey(userName),
                 UserNameAwareEntity.GetRowKey(userName));
 
             return login.Password != password ? null : login;

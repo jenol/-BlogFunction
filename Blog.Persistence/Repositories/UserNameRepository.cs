@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Blog.Persistence.Entities;
 using Microsoft.WindowsAzure.Storage;
 
@@ -12,7 +11,7 @@ namespace Blog.Persistence.Repositories
 
         protected override string TableName => $"{AppTablePrefix}UserName";
 
-        public async Task<byte[]> GetUserNameAsync(Guid userId)
+        public async Task<byte[]> GetUserNameAsync(byte[] userId)
         {
             var entity = await RetrieveEntityUsingPointQueryAsync(
                 UserNameEntity.GetPartitionKey(userId),
@@ -21,7 +20,7 @@ namespace Blog.Persistence.Repositories
             return entity?.UserName;
         }
 
-        public async Task UpsertUserIdAsync(byte[] userName, Guid userId)
+        public async Task UpsertUserIdAsync(byte[] userName, byte[] userId)
         {
             await UpsertAsync(new UserNameEntity(userId, userName));
         }
